@@ -1,27 +1,39 @@
+document.getElementById('openModal').onclick = function() {
+    document.getElementById('supplierModal').style.display = 'flex';
+}
+
+document.getElementById('closeModal').onclick = function() {
+    const modal = document.getElementById('supplierModal');
+    modal.classList.add('modal-close');
+    setTimeout(() => {
+        modal.style.display = 'none';
+        modal.classList.remove('modal-close');
+    }, 300);
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('supplierModal');
+    if (event.target == modal) {
+        modal.classList.add('modal-close');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.classList.remove('modal-close');
+        }, 300);
+    }
+}
+
 function confirmDelete(id) {
     Swal.fire({
         title: '¿Estás seguro?',
-        text: "¿Quieres Borrar Este Proveedor?",
+        text: "No podrás revertir esto!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: 'Sí, eliminar!'
     }).then((result) => {
         if (result.isConfirmed) {
             document.getElementById('delete-form-' + id).submit();
         }
     });
 }
-
-document.getElementById('help-button').addEventListener('click', function() {
-    const accordion = document.getElementById('accordion-open');
-    accordion.classList.toggle('hidden');
-    if (!accordion.classList.contains('hidden')) {
-        this.textContent = 'Cerrar Ayuda';
-        accordion.classList.add('animate__animated', 'animate__fadeIn');
-    } else {
-        this.textContent = 'Ayuda';
-    }
-});

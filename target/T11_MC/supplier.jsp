@@ -6,11 +6,54 @@
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="icon" href="icon/icon.ico" type="image/x-icon">
+    <script src="scripts/supplier.js"></script>
     <style>
         tbody tr:nth-child(even) {
             background-color: #2D3748;
         }
-
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: #1A202C;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            transform: translateY(-50px);
+            opacity: 0;
+            animation: slideIn 0.3s forwards;
+        }
+        input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 30px #1A202C inset !important;
+            box-shadow: 0 0 0 30px #1A202C inset !important;
+            -webkit-text-fill-color: #fff !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            animation: fadeOut 0.3s forwards;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -26,9 +69,9 @@
                         <th scope="col" class="px-6 py-3">Nombre</th>
                         <th scope="col" class="px-6 py-3">Dirección</th>
                         <th scope="col" class="px-6 py-3">Ciudad</th>
-                        <th scope="col" class="px-6 py-3">Numero de Teléfono</th>
-                        <th scope="col" class="px-6 py-3">Numero de WhatsApp</th>
-                        <th scope="col" class="px-6 py-3">Numero de Referencia</th>
+                        <th scope="col" class="px-6 py-3">Número de Teléfono</th>
+                        <th scope="col" class="px-6 py-3">Número de WhatsApp</th>
+                        <th scope="col" class="px-6 py-3">Número de Referencia</th>
                         <th scope="col" class="px-6 py-3">Correo</th>
                         <th scope="col" class="px-6 py-3">Administrador</th>
                         <th scope="col" class="px-6 py-3">Acciones</th>
@@ -47,21 +90,11 @@
                             <td class="px-6 py-4">${supplier.email}</td>
                             <td class="px-6 py-4">${supplier.admin_id}</td>
                             <td class="px-6 py-4 text-center">
-                                <a href="editarProveedor?id=${supplier.supplier_id}" class="font-medium text-blue-400 hover:underline flex items-center">
-                                    <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10.3 1.7a1 1 0 011.4 0l5.6 5.6a1 1 0 010 1.4l-7.3 7.3-1.4 1.4a1 1 0 01-1.4 0l-5.6-5.6a1 1 0 010-1.4l7.3-7.3z"/>
-                                    </svg>
-                                    Actualizar
-                                </a>
+                                <a href="editarProveedor?id=${supplier.supplier_id}" class="font-medium text-blue-400 hover:underline flex items-center">Actualizar</a>
                                 <form id="delete-form-${supplier.supplier_id}" action="suppliers" method="post" style="display: inline;">
                                     <input type="hidden" name="id" value="${supplier.supplier_id}">
                                     <input type="hidden" name="action" value="delete">
-                                    <button type="button" class="font-medium text-red-400 hover:underline flex items-center" onclick="confirmDelete(${supplier.supplier_id})">
-                                        <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 1a1 1 0 00-1 1v1H5a1 1 0 00-1 1v1h12V3a1 1 0 00-1-1h-4V1a1 1 0 00-1-1zm0 5H5v10a1 1 0 001 1h8a1 1 0 001-1V6H10z"/>
-                                        </svg>
-                                        Eliminar
-                                    </button>
+                                    <button type="button" class="font-medium text-red-400 hover:underline flex items-center" onclick="confirmDelete(${supplier.supplier_id})">Eliminar</button>
                                 </form>
                             </td>
                         </tr>
@@ -71,72 +104,130 @@
             </div>
         </div>
     </div>
-    <!-- Accordion para el menu de ayuda -->
-    <div id="accordion-open" class="hidden mt-4" data-accordion="open">
-        <h2 id="accordion-open-heading-1">
-            <button type="button" class="flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3" data-accordion-target="#accordion-open-body-1" aria-expanded="true" aria-controls="accordion-open-body-1">
-                <span class="flex items-center"><svg class="w-5 h-5 me-2 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg> What is Flowbite?</span>
-                <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
-                </svg>
-            </button>
-        </h2>
-        <div id="accordion-open-body-1" class="hidden" aria-labelledby="accordion-open-heading-1">
-            <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
-                <p class="mb-2 text-gray-500 dark:text-gray-400">Flowbite is an open-source library of interactive components built on top of Tailwind CSS including buttons, dropdowns, modals, navbars, and more.</p>
-                <p class="text-gray-500 dark:text-gray-400">Check out this guide to learn how to <a href="/docs/getting-started/introduction/" class="text-blue-600 dark:text-blue-500 hover:underline">get started</a> and start developing websites even faster with components on top of Tailwind CSS.</p>
-            </div>
-        </div>
-        <h2 id="accordion-open-heading-2">
-            <button type="button" class="flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3" data-accordion-target="#accordion-open-body-2" aria-expanded="false" aria-controls="accordion-open-body-2">
-                <span class="flex items-center"><svg class="w-5 h-5 me-2 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg> Is there a Figma file available?</span>
-                <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
-                </svg>
-            </button>
-        </h2>
-        <div id="accordion-open-body-2" class="hidden" aria-labelledby="accordion-open-heading-2">
-            <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700">
-                <p class="mb-2 text-gray-500 dark:text-gray-400">Flowbite is first conceptualized and designed using the Figma software so everything you see in the library has a design equivalent in our Figma file.</p>
-                <p class="text-gray-500 dark:text-gray-400">Check out the <a href="https://flowbite.com/figma/" class="text-blue-600 dark:text-blue-500 hover:underline">Figma design system</a> based on the utility classes from Tailwind CSS and components from Flowbite.</p>
-            </div>
-        </div>
-        <h2 id="accordion-open-heading-3">
-            <button type="button" class="flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3" data-accordion-target="#accordion-open-body-3" aria-expanded="false" aria-controls="accordion-open-body-3">
-                <span class="flex items-center"><svg class="w-5 h-5 me-2 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg> What are the differences between Flowbite and Tailwind UI?</span>
-                <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
-                </svg>
-            </button>
-        </h2>
-        <div id="accordion-open-body-3" class="hidden" aria-labelledby="accordion-open-heading-3">
-            <div class="p-5 border border-t-0 border-gray-200 dark:border-gray-700">
-                <p class="mb-2 text-gray-500 dark:text-gray-400">The main difference is that the core components from Flowbite are open source under the MIT license, whereas Tailwind UI is a paid product. Another difference is that Flowbite relies on smaller and standalone components, whereas Tailwind UI offers sections of pages.</p>
-                <p class="mb-2 text-gray-500 dark:text-gray-400">However, we actually recommend using both Flowbite, Flowbite Pro, and even Tailwind UI as there is no technical reason stopping you from using the best of two worlds.</p>
-                <p class="mb-2 text-gray-500 dark:text-gray-400">Learn more about these technologies:</p>
-                <ul class="ps-5 text-gray-500 list-disc dark:text-gray-400">
-                    <li><a href="https://flowbite.com/pro/" class="text-blue-600 dark:text-blue-500 hover:underline">Flowbite Pro</a></li>
-                    <li><a href="https://tailwindui.com/" rel="nofollow" class="text-blue-600 dark:text-blue-500 hover:underline">Tailwind UI</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
     <div class="card-footer flex justify-center space-x-4 mt-4">
-        <a href="index.jsp" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-            Regresar al Inicio</a>
-        <a href="create.jsp" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-            Crear Nuevo Proveedor</a>
-        <a href="inactiveSuppliers" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-            Ver Proveedores Eliminados</a>
-        <button id="help-button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-            Ayuda
+        <button id="openModal" class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+            Crear Nuevo Proveedor
         </button>
+        <a href="index.jsp" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+            Regresar al Inicio
+        </a>
+        <a href="inactiveSuppliers" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+            Ver Proveedores Eliminados
+        </a>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-<script src="scripts/supplier.js"></script>
+
+<div id="supplierModal" class="modal">
+    <div class="modal-content">
+        <h2 class="text-xl font-bold text-center mb-4">Registrar Proveedor</h2>
+        <form id="supplierForm" action="suppliers" method="post" onsubmit="return validateForm() && confirmRegistration(event)" class="max-w-md mx-auto">
+            <input type="hidden" name="action" value="create" />
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="text" name="names" id="nombre" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
+                <label for="nombre" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Nombre</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="text" name="addres" id="direccion" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
+                <label for="direccion" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Dirección</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <label for="ciudad" class="block mb-2 text-sm font-medium text-gray-400">Ciudad</label>
+                <select id="ciudad" name="city" class="bg-gray-700 border border-gray-600 text-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                    <option value="">Selecciona una ciudad</option>
+                    <option value="Lima">Lima</option>
+                    <option value="Cusco">Cusco</option>
+                    <option value="Arequipa">Arequipa</option>
+                    <option value="Trujillo">Trujillo</option>
+                </select>
+            </div>
+            <div class="grid md:grid-cols-2 md:gap-6">
+                <div class="relative z-0 w-full mb-5 group">
+                    <input type="tel" name="phone_number" id="telefono" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
+                    <label for="telefono" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Número de teléfono</label>
+                </div>
+                <div class="relative z-0 w-full mb-5 group">
+                    <input type="text" name="whatsapp_number" id="whatsapp" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
+                    <label for="whatsapp" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Número de WhatsApp</label>
+                </div>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="text" name="reference_number" id="referencia" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
+                <label for="referencia" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Número de referencia</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="email" name="email" id="email" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
+                <label for="email" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Correo</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <label for="admin" class="block mb-2 text-sm font-medium text-gray-400">Administrador</label>
+                <select id="admin" name="admin_id" class="bg-gray-700 border border-gray-600 text-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                    <option value="">Selecciona un Administrador Para el Proveedor</option>
+                    <option value="1">amir</option>
+                    <option value="2">juan</option>
+                    <option value="3">henry</option>
+                </select>
+            </div>
+            <div class="flex justify-center space-x-4 mt-4">
+                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5">Registrar Proveedor</button>
+                <button type="button" class="text-red-500 hover:text-red-700" id="closeModal">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+    <script src="scripts/supplier.js"></script>
+<script>
+    function validateForm() {
+        const address = document.getElementById('direccion').value.trim();
+        const names = document.getElementById('nombre').value.trim();
+        const city = document.getElementById('ciudad').value.trim();
+        const phoneNumber = document.getElementById('telefono').value.trim();
+        const whatsappNumber = document.getElementById('whatsapp').value.trim();
+        const referenceNumber = document.getElementById('referencia').value.trim();
+        const email = document.getElementById('email').value.trim();
+
+        // Validar dirección
+        if (!address || address.includes('  ') || /[^A-Za-z0-9 .,]/.test(address)) {
+            Swal.fire('Error', 'La dirección no puede tener espacios consecutivos ni caracteres no permitidos.', 'error');
+            return false;
+        }
+
+        // Validar nombres
+        if (!names || names.includes('  ') || /[^A-Za-z0-9 .'\-]/.test(names)) {
+            Swal.fire('Error', 'El nombre no puede tener espacios consecutivos ni caracteres no permitidos.', 'error');
+            return false;
+        }
+
+        // Validar ciudad
+        if (!city) {
+            Swal.fire('Error', 'Por favor selecciona una ciudad.', 'error');
+            return false;
+        }
+
+        // Validar número de teléfono
+        if (!/^\d{9}$/.test(phoneNumber)) {
+            Swal.fire('Error', 'El número de teléfono debe tener 9 dígitos.', 'error');
+            return false;
+        }
+
+        // Validar número de WhatsApp
+        if (!/^\d{9}$/.test(whatsappNumber)) {
+            Swal.fire('Error', 'El número de WhatsApp debe tener 9 dígitos.', 'error');
+            return false;
+        }
+
+        // Validar número de referencia
+        if (!/^\d{9}$/.test(referenceNumber)) {
+            Swal.fire('Error', 'El número de referencia debe tener 9 dígitos.', 'error');
+            return false;
+        }
+
+        // Validar formato de correo electrónico
+        if (!/^[^ ]+@[^ ]+\.[^ ]+$/.test(email)) {
+            Swal.fire('Error', 'El correo electrónico no tiene un formato válido.', 'error');
+            return false;
+        }
+        return true;
+    }
+</script>
 </body>
 </html>
